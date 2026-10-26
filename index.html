@@ -104,6 +104,11 @@ h2 .ti{margin-right:8px}
 .tag{display:inline-block;font-size:.7rem;border:1px dashed var(--brown);color:var(--brown);border-radius:6px;padding:0 6px;width:fit-content}
 .feat{font-size:.7rem;background:var(--accent);color:var(--accent-text);border-radius:6px;padding:0 6px;width:fit-content}
 .card .btn{margin-top:6px;width:100%}
+/* 카드 어디를 눌러도 링크로 이동 (버튼의 링크를 카드 전체로 넓힘) */
+.card{position:relative}
+.card a.btn::after{content:'';position:absolute;inset:0}
+.card:has(a.btn){cursor:pointer;transition:transform .15s,box-shadow .15s}
+.card:has(a.btn):hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(63,125,184,.15)}
 .plist{display:grid;gap:10px}
 .prow{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .prow .thumb{width:56px;height:56px;aspect-ratio:auto;border-radius:10px;flex:none;overflow:hidden;font-size:1.3rem}

@@ -357,7 +357,8 @@ const products = [
 
 /* ---- 공동구매 ----
    꿈동글 Pick과는 별도 게시판이에요. 블록을 복사해서 추가하세요.
-   - period: 진행 기간 (예: '10/25 ~ 10/31'). 모르면 '' 로 두세요.
+   - priceRange: 가격대. 비워 두면 '최저가'로 자동 표시돼요.
+   - period: 진행 기간 (예: '10/25 ~ 10/31'). 비워 두면 '재고 소진 시 예고 없이 마감'으로 자동 표시돼요.
    - endDate: 마감일 'YYYY-MM-DD' (예: '2026-10-31'). 적어 두면 마감일이 지난 뒤 자동으로 사라져요. 기한이 없으면 아예 빼세요.
    - url 이 '' 이면 "링크 준비 중"으로 비활성화돼요.
    ※ 아래는 테스트용 예시이며 실제 공동구매가 아니에요. 운영 전에 교체하세요. */
@@ -602,8 +603,8 @@ function renderGroupBuys() {
         ${g.isSample ? '<span class="tag">테스트용 예시</span>' : ''}
         <div class="name">${esc(g.name)}</div>
         <div class="reason">${esc(g.reason)}</div>
-        <div class="price">${g.priceRange ? esc(g.priceRange) : '가격대 준비 중'}</div>
-        <div class="meta">${g.period ? '기간 ' + esc(g.period) : '기간 준비 중'}</div>
+        <div class="price">${esc(g.priceRange || '최저가')}</div>
+        <div class="meta">${'기간 ' + esc(g.period || '재고 소진 시 예고 없이 마감')}</div>
         ${linkBtn(g.url, '공동구매 보러 가기', '링크 준비 중')}
       </div>
     </article>`).join('') : '<div class="empty" style="grid-column:1/-1">진행 중인 공동구매를 준비 중이에요.</div>';

@@ -708,7 +708,49 @@ if (EDIT) {
     else { ta.select(); try { document.execCommand('copy'); done(); } catch (_) {} }
   };
 }
-renderTabs(); renderProducts(); renderGroupBuys(); renderTipTabs(); renderTips(); renderEduTabs(); renderEdu(); renderChannels();
+/* ---- 공동구매 구글 시트 연동 ----
+   GB_SHEET_URL에 '웹에 게시'한 구글 시트의 CSV 주소를 넣으면, 사이트가 열릴 때마다 시트를 읽어 공동구매 카드를 바꿔요.
+   비워 두거나 시트를 못 읽으면 아래 groupBuys 목록이 그대로 보여요.
+   시트 첫 줄(제목): 상품명 | 링크 | 한 줄 소개 | 가격대 | 기간 | 마감일 | 사진 */
+const GB_SHEET_URL = '';
+const GB_PHOTO = {}; groupBuys.forEach((g) => { if (g.image) GB_PHOTO[g.name.trim()] = g.image; }); /* 시트에 사진이 비어 있으면 이름이 같은 기존 사진을 써요 */
+function parseCsv(t) {
+  t = t.replace(/^﻿/, ''); const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+async function loadGroupBuysFromSheet() {
+  if (!GB_SHEET_URL) return;
+  try {
+    const res = await fetch(GB_SHEET_URL, { cache: 'no-store' });
+    if (!res.ok) return;
+    const rows = parseCsv(await res.text()).filter((r) => r.some((c) => c.trim()));
+    const head = (rows[0] || []).map((h) => h.trim());
+    const ix = (n) => head.indexOf(n);
+    if (ix('상품명') < 0 || ix('링크') < 0) return; /* 제목 줄이 없으면 시트가 아니라고 보고 무시 */
+    const get = (r, n) => (ix(n) >= 0 ? (r[ix(n)] || '').trim() : '');
+    const list = rows.slice(1).map((r, i) => {
+      const name = get(r, '상품명'); if (!name) return null;
+      const d = get(r, '마감일').match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+      const img = get(r, '사진');
+      return { id: 'sheet-' + i, name, url: get(r, '링크'), reason: get(r, '한 줄 소개'), priceRange: get(r, '가격대'), period: get(r, '기간'),
+        endDate: d ? `${d[1]}-${d[2].padStart(2, '0')}-${d[3].padStart(2, '0')}` : '',
+        image: /^https:\/\//i.test(img) ? img : (GB_PHOTO[name] || '') };
+    }).filter(Boolean);
+    groupBuys.length = 0; list.forEach((g) => groupBuys.push(g));
+    renderGroupBuys();
+  } catch (e) { /* 실패하면 기본 목록 유지 */ }
+}
+renderTabs(); renderProducts(); renderGroupBuys(); renderTipTabs();
+loadGroupBuysFromSheet(); renderTips(); renderEduTabs(); renderEdu(); renderChannels();
 
 /* ===== 꿈동글 놀이터: 지뢰찾기 (9x9, 지뢰 10개) ===== */
 (function () {
